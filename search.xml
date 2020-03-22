@@ -1,6 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>CNN_Gradient_backward</title>
+    <url>/2020/03/22/CNN-Gradient-backward/</url>
+    <content><![CDATA[<p>Mathematics abuse my hundreds of times, I stay mathematics such as first.</p>
+<a id="more"></a>
+
+<h4 id="CNN中的梯度求法"><a href="#CNN中的梯度求法" class="headerlink" title="CNN中的梯度求法"></a>CNN中的梯度求法</h4><h5 id="求CNN卷积层的梯度"><a href="#求CNN卷积层的梯度" class="headerlink" title="求CNN卷积层的梯度"></a>求CNN卷积层的梯度</h5><p> 设有N个样本，其中第n个输入样本的两层卷积层：</p>
+<ul>
+<li><p>Input  X ：(W1, H1, D1),  </p>
+</li>
+<li><p>filter W : (F, F, D1)</p>
+<ul>
+<li>Number of filters K,</li>
+<li>their spatial extent F,</li>
+<li>the stride S,  // 对求梯度无影响</li>
+<li>the amount of zero padding P  // 在此认为上述是已经padding过的X</li>
+</ul>
+</li>
+<li><p>Bias  B</p>
+</li>
+<li><p>produce O  ： (W2, H2, K)</p>
+</li>
+</ul>
+<p>求 $ \frac{\partial L}{\partial W}$  和 $\frac{\partial L} {\partial B}$</p>
+<p>推导如下：</p>
+<p>现求 $  \frac{\partial L}{\partial W_{f_i,f_j,d_i,d}}$ 和 $ \frac{\partial L}{\partial B_d}$</p>
+<p>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
+<p>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<em>\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}</em>\frac{\partial O_{i,j,d}}{\partial B_d}<br>$$<br>其中，i, j, d 分别代表O矩阵的第i行、第j列、第d个通道(一个卷积核只与O的一个通道有关，所以没有对通道数的求和)</p>
+<p>由卷积的公式：<br>$$<br>O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}*X_{i+f_i,j+f_j,d_i} + B_d\<br>$$<br>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
+<p>于是，有：<br>$$<br>\frac{\partial O_{i,j,d}}{\partial W_{f_i, f_j,d_i,d}} = X_{i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial O_{i,j,d}}{\partial B_d} = 1<br>$$</p>
+<p>由此，带入得：</p>
+<p>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<em>\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\=  \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}</em>X_{i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial B_d}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<br>$$</p>
+<p>因此，对于N个独立样本，对每个样本加一个标号计数：n, 将损失梯度累加，可得：<br>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<em>\frac{\partial O_{n,i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\=   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}</em>X_{n,i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*\frac{\partial O_{n,i,j,d}}{\partial B_d}\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<br>$$<br>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
+<p>不同样本卷积核相同。</p>
+<p>故：<br>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} =   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*X_{n,i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<br>$$<br>其中：<br>$$<br>\frac{\partial L}{\partial O_{n,i,j,d}} = \begin{bmatrix}  \frac{\partial L}{\partial O_{n,0,0,d}} &amp; \frac{\partial L}{\partial O_{n,0,0,d}} &amp; …… &amp;\frac{\partial L}{\partial O_{n,0,0,d}}\  \vdots &amp; \vdots &amp; \vdots &amp; \vdots\  \frac{\partial L}{\partial O_{n,0,0,d}} &amp; \frac{\partial L}{\partial O_{n,0,0,d}} &amp; …… &amp;\frac{\partial L}{\partial O_{n,0,0,d}}\    \end{bmatrix}<br>$$</p>
+<p>根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
+<h5 id="池化层"><a href="#池化层" class="headerlink" title="池化层"></a>池化层</h5><p>池化层没有权重和偏置</p>
+<h5 id="全连接层的梯度求法"><a href="#全连接层的梯度求法" class="headerlink" title="全连接层的梯度求法"></a>全连接层的梯度求法</h5><p>同课上公式，在此不再重复</p>
+<h4 id="CNN的反向传播过程"><a href="#CNN的反向传播过程" class="headerlink" title="CNN的反向传播过程"></a>CNN的反向传播过程</h4><h5 id="全连接层的反向传播"><a href="#全连接层的反向传播" class="headerlink" title="全连接层的反向传播"></a>全连接层的反向传播</h5><p>与全连接神经网络公式一致</p>
+<h5 id="池化层-1"><a href="#池化层-1" class="headerlink" title="池化层"></a>池化层</h5><p>反向传播在池化层所需要做的工作是：将误差传播到前一层。</p>
+<p>池化层输入输出之间变换： $ X^{(i)} = down(X^{(i-1)}) $  ,  因此 $\delta^{(i-1)} =up(\delta^{(i)})$, 其中 对应层与对应误差的矩阵维度相等</p>
+<p>以max池化为例，$\delta$之间关系如图：（对于每一个池化窗口）<br>$$<br>\begin{bmatrix}\delta_{i, j}  \end{bmatrix}\rightarrow^{up} \rightarrow\begin{bmatrix}0 &amp; 0 &amp; …… &amp; 0 \\vdots&amp; \vdots&amp;\vdots&amp;\vdots\0 &amp; …… &amp;\delta_{i, j}&amp;……\…… &amp; …… &amp; ……&amp;……\end{bmatrix}<br>$$<br>其中，$\delta_{i,j}$ 在$\delta^{(i-1)}$中的位置在正向传播的时候已知。若一个点由于窗口和步长因素经过了多次池化，那么叠加。</p>
+<h5 id="卷积层"><a href="#卷积层" class="headerlink" title="卷积层"></a>卷积层</h5><p>当一个通道时：</p>
+<p>由公式：$\delta_{i, j}^{l} = \frac{\partial L}{\partial O_{i, j}}$</p>
+<p>可得：<br>$$<br>\delta_{i, j}^{l-1} = \frac{\partial L}{\partial X_{i, j}}\= \sum_p\sum_q(\frac{\partial L}{\partial O_{p, q}}<em>\frac{\partial O_{p,q}}{\partial X_{i, j}})\= \sum_p\sum_q(\delta_{p, q}^{l}</em>\frac{\partial O_{p,q}}{\partial X_{i, j}})\<br>$$<br>而由上面梯度求解时的一个公式：<br>$$<br>O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}<em>X_{i+f_i,j+f_j,d_i} + B_d\<br>$$<br>因此：<br>$$<br>\delta_{i, j}^{l-1} = \sum_a\sum_b(\delta_{i-a, j-b}^{l}</em>W_{a,b})<br>$$<br>观察可得：<br>$$<br>\delta_{i, j}^{l-1} = \delta^{l}*ROT180(W)<br>$$<br>第l层的第k通道会经过相同的卷积核的第k个通道影响影响所有的l+1层的通道</p>
+<p>因此：<br>$$<br>\delta_{i, j,d}^{l-1} = \sum_k\delta_k^{l}*ROT180(W_k)<br>$$<br>同样，根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
+<h5 id="太史公云"><a href="#太史公云" class="headerlink" title="太史公云"></a>太史公云</h5><p>一些矩阵繁琐的运算还是不熟悉</p>
+<p>纸上得来终觉浅，不欺我</p>
+<p>数学真漂亮</p>
+<p>12:00-3:30</p>
+<p>11:00-15:00</p>
+<p>至此</p>
+]]></content>
+      <categories>
+        <category>ML</category>
+      </categories>
+      <tags>
+        <tag>math</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Animal_Farm</title>
     <url>/2020/03/21/Animal-Farm/</url>
     <content><![CDATA[<p>history vs NOW and future</p>
