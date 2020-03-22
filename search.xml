@@ -5,7 +5,6 @@
     <url>/2020/03/22/CNN-Gradient-backward/</url>
     <content><![CDATA[<p>Mathematics abuse my hundreds of times, I stay mathematics such as first.</p>
 <a id="more"></a>
-
 <h4 id="CNN中的梯度求法"><a href="#CNN中的梯度求法" class="headerlink" title="CNN中的梯度求法"></a>CNN中的梯度求法</h4><h5 id="求CNN卷积层的梯度"><a href="#求CNN卷积层的梯度" class="headerlink" title="求CNN卷积层的梯度"></a>求CNN卷积层的梯度</h5><p> 设有N个样本，其中第n个输入样本的两层卷积层：</p>
 <ul>
 <li><p>Input  X ：(W1, H1, D1),  </p>
@@ -18,34 +17,53 @@
 <li>the amount of zero padding P  // 在此认为上述是已经padding过的X</li>
 </ul>
 </li>
-<li><p>Bias  B</p>
-</li>
-<li><p>produce O  ： (W2, H2, K)</p>
-</li>
+<li>Bias  B</li>
+<li>produce O  ： (W2, H2, K)</li>
 </ul>
 <p>求 $ \frac{\partial L}{\partial W}$  和 $\frac{\partial L} {\partial B}$</p>
 <p>推导如下：</p>
 <p>现求 $  \frac{\partial L}{\partial W_{f_i,f_j,d_i,d}}$ 和 $ \frac{\partial L}{\partial B_d}$</p>
 <p>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
-<p>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<em>\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}</em>\frac{\partial O_{i,j,d}}{\partial B_d}<br>$$<br>其中，i, j, d 分别代表O矩阵的第i行、第j列、第d个通道(一个卷积核只与O的一个通道有关，所以没有对通道数的求和)</p>
-<p>由卷积的公式：<br>$$<br>O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}*X_{i+f_i,j+f_j,d_i} + B_d\<br>$$<br>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
-<p>于是，有：<br>$$<br>\frac{\partial O_{i,j,d}}{\partial W_{f_i, f_j,d_i,d}} = X_{i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial O_{i,j,d}}{\partial B_d} = 1<br>$$</p>
-<p>由此，带入得：</p>
-<p>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<em>\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\=  \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}</em>X_{i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial B_d}\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}<br>$$</p>
-<p>因此，对于N个独立样本，对每个样本加一个标号计数：n, 将损失梯度累加，可得：<br>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<em>\frac{\partial O_{n,i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\=   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}</em>X_{n,i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}  = \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*\frac{\partial O_{n,i,j,d}}{\partial B_d}\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<br>$$<br>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}};\\~\\~\\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial B_d}</script><p>其中，i, j, d 分别代表O矩阵的第i行、第j列、第d个通道(一个卷积核只与O的一个通道有关，所以没有对通道数的求和)</p>
+<p>由卷积的公式：</p>
+<script type="math/tex; mode=display">
+O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}*X_{i+f_i,j+f_j,d_i} + B_d\\</script><p>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
+<p>于是，有：</p>
+<script type="math/tex; mode=display">
+\frac{\partial O_{i,j,d}}{\partial W_{f_i, f_j,d_i,d}} = X_{i+f_i, j+f_j,d_i};\\~\\~\\\frac{\partial O_{i,j,d}}{\partial B_d} = 1</script><p>由此，带入得：</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\\=  \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*X_{i+f_i, j+f_j,d_i};\\~\\~\\\frac{\partial L}{\partial B_d}  = \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}*\frac{\partial O_{i,j,d}}{\partial B_d}\\= \sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{i,j,d}}</script><p>因此，对于N个独立样本，对每个样本加一个标号计数：n, 将损失梯度累加，可得：</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} = \frac{\partial L}{\partial O} * \frac{\partial O}{\partial W_{f_i,f_j,d_i,d}}\\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*\frac{\partial O_{n,i,j,d}}{\partial W_{f_i,f_j,d_i,d}}\\=   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*X_{n,i+f_i, j+f_j,d_i};\\~\\~\\\frac{\partial L}{\partial B_d}  = \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*\frac{\partial O_{n,i,j,d}}{\partial B_d}\\= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}</script><p>其中，d, di, fi, fj 表示第d个卷积核的第di个通道的第fi行第fj列</p>
 <p>不同样本卷积核相同。</p>
-<p>故：<br>$$<br>\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} =   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*X_{n,i+f_i, j+f_j,d_i};\<del>\</del>\\frac{\partial L}{\partial B_d}= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}<br>$$<br>其中：<br>$$<br>\frac{\partial L}{\partial O_{n,i,j,d}} = \begin{bmatrix}  \frac{\partial L}{\partial O_{n,0,0,d}} &amp; \frac{\partial L}{\partial O_{n,0,0,d}} &amp; …… &amp;\frac{\partial L}{\partial O_{n,0,0,d}}\  \vdots &amp; \vdots &amp; \vdots &amp; \vdots\  \frac{\partial L}{\partial O_{n,0,0,d}} &amp; \frac{\partial L}{\partial O_{n,0,0,d}} &amp; …… &amp;\frac{\partial L}{\partial O_{n,0,0,d}}\    \end{bmatrix}<br>$$</p>
-<p>根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
+<p>故：</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial W_{f_i,f_j,d_i,d}} =   \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}*X_{n,i+f_i, j+f_j,d_i};\\~\\~\\\frac{\partial L}{\partial B_d}= \sum_{n=0}^{N-1}\sum_{i=0}^{W_2}\sum_{j=0}^{H_2-1}\frac{\partial L}{\partial O_{n,i,j,d}}</script><p>其中：</p>
+<script type="math/tex; mode=display">
+\frac{\partial L}{\partial O_{n,i,j,d}} = \begin{bmatrix}  \frac{\partial L}{\partial O_{n,0,0,d}} & \frac{\partial L}{\partial O_{n,0,0,d}} & …… &\frac{\partial L}{\partial O_{n,0,0,d}}\\  \vdots & \vdots & \vdots & \vdots\\  \frac{\partial L}{\partial O_{n,0,0,d}} & \frac{\partial L}{\partial O_{n,0,0,d}} & …… &\frac{\partial L}{\partial O_{n,0,0,d}}\\    \end{bmatrix}</script><p>根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
 <h5 id="池化层"><a href="#池化层" class="headerlink" title="池化层"></a>池化层</h5><p>池化层没有权重和偏置</p>
 <h5 id="全连接层的梯度求法"><a href="#全连接层的梯度求法" class="headerlink" title="全连接层的梯度求法"></a>全连接层的梯度求法</h5><p>同课上公式，在此不再重复</p>
 <h4 id="CNN的反向传播过程"><a href="#CNN的反向传播过程" class="headerlink" title="CNN的反向传播过程"></a>CNN的反向传播过程</h4><h5 id="全连接层的反向传播"><a href="#全连接层的反向传播" class="headerlink" title="全连接层的反向传播"></a>全连接层的反向传播</h5><p>与全连接神经网络公式一致</p>
 <h5 id="池化层-1"><a href="#池化层-1" class="headerlink" title="池化层"></a>池化层</h5><p>反向传播在池化层所需要做的工作是：将误差传播到前一层。</p>
 <p>池化层输入输出之间变换： $ X^{(i)} = down(X^{(i-1)}) $  ,  因此 $\delta^{(i-1)} =up(\delta^{(i)})$, 其中 对应层与对应误差的矩阵维度相等</p>
-<p>以max池化为例，$\delta$之间关系如图：（对于每一个池化窗口）<br>$$<br>\begin{bmatrix}\delta_{i, j}  \end{bmatrix}\rightarrow^{up} \rightarrow\begin{bmatrix}0 &amp; 0 &amp; …… &amp; 0 \\vdots&amp; \vdots&amp;\vdots&amp;\vdots\0 &amp; …… &amp;\delta_{i, j}&amp;……\…… &amp; …… &amp; ……&amp;……\end{bmatrix}<br>$$<br>其中，$\delta_{i,j}$ 在$\delta^{(i-1)}$中的位置在正向传播的时候已知。若一个点由于窗口和步长因素经过了多次池化，那么叠加。</p>
+<p>以max池化为例，$\delta$之间关系如图：（对于每一个池化窗口）</p>
+<script type="math/tex; mode=display">
+\begin{bmatrix}\delta_{i, j}  \end{bmatrix}\rightarrow^{up} \rightarrow\begin{bmatrix}0 & 0 & …… & 0 \\\vdots& \vdots&\vdots&\vdots\\0 & …… &\delta_{i, j}&……\\…… & …… & ……&……\end{bmatrix}</script><p>其中，$\delta_{i,j}$ 在$\delta^{(i-1)}$中的位置在正向传播的时候已知。若一个点由于窗口和步长因素经过了多次池化，那么叠加。</p>
 <h5 id="卷积层"><a href="#卷积层" class="headerlink" title="卷积层"></a>卷积层</h5><p>当一个通道时：</p>
 <p>由公式：$\delta_{i, j}^{l} = \frac{\partial L}{\partial O_{i, j}}$</p>
-<p>可得：<br>$$<br>\delta_{i, j}^{l-1} = \frac{\partial L}{\partial X_{i, j}}\= \sum_p\sum_q(\frac{\partial L}{\partial O_{p, q}}<em>\frac{\partial O_{p,q}}{\partial X_{i, j}})\= \sum_p\sum_q(\delta_{p, q}^{l}</em>\frac{\partial O_{p,q}}{\partial X_{i, j}})\<br>$$<br>而由上面梯度求解时的一个公式：<br>$$<br>O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}<em>X_{i+f_i,j+f_j,d_i} + B_d\<br>$$<br>因此：<br>$$<br>\delta_{i, j}^{l-1} = \sum_a\sum_b(\delta_{i-a, j-b}^{l}</em>W_{a,b})<br>$$<br>观察可得：<br>$$<br>\delta_{i, j}^{l-1} = \delta^{l}*ROT180(W)<br>$$<br>第l层的第k通道会经过相同的卷积核的第k个通道影响影响所有的l+1层的通道</p>
-<p>因此：<br>$$<br>\delta_{i, j,d}^{l-1} = \sum_k\delta_k^{l}*ROT180(W_k)<br>$$<br>同样，根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
+<p>可得：</p>
+<script type="math/tex; mode=display">
+\delta_{i, j}^{l-1} = \frac{\partial L}{\partial X_{i, j}}\\= \sum_p\sum_q(\frac{\partial L}{\partial O_{p, q}}*\frac{\partial O_{p,q}}{\partial X_{i, j}})\\= \sum_p\sum_q(\delta_{p, q}^{l}*\frac{\partial O_{p,q}}{\partial X_{i, j}})\\</script><p>而由上面梯度求解时的一个公式：</p>
+<script type="math/tex; mode=display">
+O_{i,j,d} = \sum_{d_i=0}^{D_1 - 1}\sum_{f_i=0}^{F-1}\sum_{f_j=0}^{F-1}W_{f_i,f_j,d_i,d}*X_{i+f_i,j+f_j,d_i} + B_d\\</script><p>因此：</p>
+<script type="math/tex; mode=display">
+\delta_{i, j}^{l-1} = \sum_a\sum_b(\delta_{i-a, j-b}^{l}*W_{a,b})</script><p>观察可得：</p>
+<script type="math/tex; mode=display">
+\delta_{i, j}^{l-1} = \delta^{l}*ROT180(W)</script><p>第l层的第k通道会经过相同的卷积核的第k个通道影响影响所有的l+1层的通道</p>
+<p>因此：</p>
+<script type="math/tex; mode=display">
+\delta_{i, j,d}^{l-1} = \sum_k\delta_k^{l}*ROT180(W_k)</script><p>同样，根据课上例子，认为卷积层没有使用激活函数，经过查阅资料，发现卷积层可以使用也可以不使用激活函数。如若使用激活函数，在上式乘上激活函数对O元素的导数即可。</p>
 <h5 id="太史公云"><a href="#太史公云" class="headerlink" title="太史公云"></a>太史公云</h5><p>一些矩阵繁琐的运算还是不熟悉</p>
 <p>纸上得来终觉浅，不欺我</p>
 <p>数学真漂亮</p>
@@ -57,6 +75,7 @@
         <category>ML</category>
       </categories>
       <tags>
+        <tag>mathjax:true</tag>
         <tag>math</tag>
       </tags>
   </entry>
@@ -65,7 +84,6 @@
     <url>/2020/03/21/Animal-Farm/</url>
     <content><![CDATA[<p>history vs NOW and future</p>
 <a id="more"></a>
-
 <p>一口气读完了动物庄园，收获了跟1984相似而又不同的感觉</p>
 <h5 id="为了奥威尔"><a href="#为了奥威尔" class="headerlink" title="为了奥威尔"></a>为了奥威尔</h5><p>一个是预言，一个是写实；一个是极尽夸张之能事的预言，一个是暗藏嘲讽与惋惜的写实。相似的是，都是那么的不稽，同时又那么的真实，具有启发思考。</p>
 <p>一开始没有去想暗讽的是苏俄的历史，而是先入为主地去对照中国的脚步。结果发现是如此的吻合，惊为天人，以为奥威尔在建国前便预知到了中国的发展和挫折。</p>
@@ -115,7 +133,6 @@
     <url>/2020/02/26/where-is-the-time/</url>
     <content><![CDATA[<p>time is life, and we are all changing in it.</p>
 <a id="more"></a>
-
 <h5 id="需要友谊"><a href="#需要友谊" class="headerlink" title="需要友谊"></a>需要友谊</h5><p>多么羡慕、也多么幸福。</p>
 <p>羡慕他们有无话不谈，可打可闹可托付的朋友；也幸福于自己回顾走过的道路，有人相伴，有可以严肃交流，有可以相互勉励，有可以随时打扰，有可以打打闹闹的朋友。</p>
 <p>这个时代，需要静思，需要独处，同时也需要陪伴，需要合作。</p>
@@ -160,7 +177,6 @@
     <url>/2020/02/15/Bye-my-winter/</url>
     <content><![CDATA[<p>Everything happens for a reason.</p>
 <a id="more"></a>
-
 <p>后天就开学了，虽然仍然会在家里。是个时候转变思想，像个松鼠抖开惺忪，跳上枝丫，去透过薄雾，静静等待第一缕春光，享受这还寒乍暖。</p>
 <p>这个假期回来的很早，因为计划了很多事情。但是被这没有预料到的疫情打乱了不少。</p>
 <p>这个假期玩了不少游戏，看了不少up主的视频，还美其名曰 体验与融入。</p>
@@ -187,10 +203,9 @@
 <p>python module: sklearn and so on.</p>
 <p>python: 3.7.3</p>
 <a id="more"></a>
-
 <p>这是我第一次写出完整的NLP项目的代码。之前在理论上花费了太多时间，当时感觉很空洞，可能是因为没上手进行实践吧。实践起来才发现，那些统计理论知识的重要性。过程中出现了很多bug，其中：有的是因为理论没掌握好，有的是不知道的一些工具，也有的是一些毫无意义的但是却很耗时的bug（比如没有将路径都设成英文）</p>
 <p>我使用了Amazon的评论的数据库，其中:</p>
-<p><img src="D:%5CBlog%5Csource_posts%5Ctext-classification-by-sklearn%5Cdataset.png" alt=""></p>
+<p><img src="D:\Blog\source\_posts\text-classification-by-sklearn\dataset.png" alt=""></p>
 <p>tag文件的每一行是一句评论，对应的lab是五级制的评分。分为训练集测试集之类的。其中标号为1和2的文件是我自己切割来训练用的，原因是源文件太大，同时也不够干净，有很多非英文字母，比如希腊文等，还有空行之类的，我通过报错边写边整改了大概一万行来训练。</p>
 <p>下面写一下我的过程和自己的理解（初学。。请指教）</p>
 <p>首先我学习了莫烦的sklearn教程，大致了解了一下sklearn的使用。之后针对文本分类这个具体的项目我去学习了对应的知识。</p>
@@ -203,17 +218,7 @@
 <p>学习了boosting的方法，大致知道了其中的道理，强可学习&amp;弱可学习。重点看了Ababoosting的方法，学习了其中调整权重和进行组合的数学理论。</p>
 <p>（上面三段是我学一个写一个这样来的，所以可能不通顺）</p>
 <h5 id="代码实现"><a href="#代码实现" class="headerlink" title="代码实现"></a>代码实现</h5><h6 id="logistic-TF-IDF"><a href="#logistic-TF-IDF" class="headerlink" title="logistic+TF-IDF"></a>logistic+TF-IDF</h6><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LogisticRegression</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> model_selection, preprocessing, linear_model</span><br><span class="line"><span class="keyword">from</span> sklearn.feature_extraction.text <span class="keyword">import</span> TfidfVectorizer</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np </span><br><span class="line"><span class="keyword">import</span> pandas</span><br><span class="line"><span class="keyword">import</span> sys </span><br><span class="line"></span><br><span class="line"><span class="comment"># 此处是我因为在终端输出的时候，由于文件太大不能完全输出有省略，所以这样设置</span></span><br><span class="line"><span class="comment"># 但是并没有起作用，希望大家指教一下</span></span><br><span class="line"><span class="string">""" pandas.set_option('display.max_columns',1000000)</span></span><br><span class="line"><span class="string">pandas.set_option('display.width', 10000000)</span></span><br><span class="line"><span class="string">pandas.set_option('display.max_colwidth',1000000)</span></span><br><span class="line"><span class="string"> """</span></span><br><span class="line"><span class="comment"># 下文是训练集和测试集，我没有交叉验证之类的，所以没在训练中用另一组文件</span></span><br><span class="line">data_X = pandas.read_csv(<span class="string">'F:/tmp/amazon/train1.tgt'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">data_y = pandas.read_csv(<span class="string">'F:/tmp/amazon/train1.lab'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">test_X = pandas.read_csv(<span class="string">'F:/tmp/amazon/test.tgt'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">test_y = pandas.read_csv(<span class="string">'F:/tmp/amazon/test.lab'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 因为编码报错，所以卑微的笨拙重定向输出一下</span></span><br><span class="line"><span class="comment"># 报错为：UnicodeEncodeError: 'gbk' codec can't encode character '\xae' in position 164128: illegal multibyte sequence</span></span><br><span class="line"><span class="comment"># 网上的解答是针对str的，我的是列表，最后也没有解决。。。只能手动修改了</span></span><br><span class="line"><span class="comment"># 按网上解答后的报错是：np.nan is an invalid document, expected byte or unicode string</span></span><br><span class="line"><span class="comment"># 和 empty vocabulary; perhaps the documents only contain stop words</span></span><br><span class="line"><span class="comment"># sys.stdout = open('F:/tmp/amazon/train2.tgt', 'w')</span></span><br><span class="line"><span class="string">""" </span></span><br><span class="line"><span class="string"># 此处报错是：tfidf.fit_transform:'int' object has no attribute 'lower'</span></span><br><span class="line"><span class="string"># 是因为我传入的是pandas读出的dataframe？</span></span><br><span class="line"><span class="string"># 最后的解决方法是笨拙的转换成np，array，变成了二维的array，然后再reshape</span></span><br><span class="line"><span class="string">tmp = np.array(test_X)</span></span><br><span class="line"><span class="string">test_X0 = tmp.reshape(1, len(tmp)).tolist()[0]</span></span><br><span class="line"><span class="string">X_test = tf.fit_transform(ctvecter.fit_transform(test_X0)).toarray()</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"> """</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 对 y进行编码, 一开始用的这个，后来查文档发现是：</span></span><br><span class="line"><span class="comment"># Encode target labels with value between 0 and n_classes-1.</span></span><br><span class="line"><span class="comment"># This transformer should be used to encode target values, i.e. y, and not the input X.</span></span><br><span class="line"><span class="string">""" encoder = preprocessing.LabelEncoder()</span></span><br><span class="line"><span class="string">data_y = encoder.fit_transform(data_y)</span></span><br><span class="line"><span class="string">test_y = encoder.fit_transform(test_y) """</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 于是这样自己写的：如果不大于等于3，就替换为0……</span></span><br><span class="line">data_y = data_y.where(data_y[<span class="number">0</span>] &gt;= <span class="number">3</span>, <span class="number">0</span>).where(data_y[<span class="number">0</span>] &lt; <span class="number">3</span>, <span class="number">1</span>)</span><br><span class="line">test_y = test_y.where(test_y[<span class="number">0</span>] &gt;= <span class="number">3</span>, <span class="number">0</span>).where(test_y[<span class="number">0</span>] &lt; <span class="number">3</span>, <span class="number">1</span>)</span><br><span class="line">tmp = np.array(data_X)</span><br><span class="line">train_X = tmp.reshape(<span class="number">1</span>, len(tmp)).tolist()[<span class="number">0</span>]</span><br><span class="line"><span class="string">""" for i in range(565912):</span></span><br><span class="line"><span class="string">    print(train_X[i]) """</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># tf-idf向量</span></span><br><span class="line">tfidf = TfidfVectorizer(decode_error=<span class="string">'ignore'</span>, encoding=<span class="string">'utf-8'</span>)</span><br><span class="line">X_tfidf = tfidf.fit_transform(train_X)</span><br><span class="line"></span><br><span class="line"><span class="comment"># logistics</span></span><br><span class="line">LR = LogisticRegression()</span><br><span class="line">LR.fit(X_tfidf, data_y)</span><br><span class="line"><span class="comment"># 测试</span></span><br><span class="line">tmp = np.array(test_X)</span><br><span class="line">test_X = tmp.reshape(<span class="number">1</span>, len(tmp)).tolist()[<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">X_test = tfidf.transform(test_X)</span><br><span class="line"></span><br><span class="line">print(LR.score(X_test, test_y)) </span><br><span class="line"></span><br><span class="line"><span class="comment"># 最后得到的结果是 0.8418418，而且随着我自己切割的训练集的增大而提高</span></span><br></pre></td></tr></table></figure>
-
-
-
 <h6 id="SVM-amp-boost-word2vec"><a href="#SVM-amp-boost-word2vec" class="headerlink" title="SVM&amp;boost+word2vec"></a>SVM&amp;boost+word2vec</h6><figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> sklearn.linear_model <span class="keyword">import</span> LogisticRegression</span><br><span class="line"><span class="keyword">from</span> sklearn <span class="keyword">import</span> model_selection, preprocessing, linear_model, naive_bayes, metrics, svm</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> AdaBoostClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.ensemble <span class="keyword">import</span> GradientBoostingClassifier</span><br><span class="line"><span class="keyword">from</span> sklearn.feature_extraction.text <span class="keyword">import</span> TfidfVectorizer</span><br><span class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> classification_report</span><br><span class="line"><span class="keyword">from</span> gensim.models.word2vec <span class="keyword">import</span> Word2Vec</span><br><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np </span><br><span class="line"><span class="keyword">import</span> pandas</span><br><span class="line"><span class="keyword">import</span> sys </span><br><span class="line"></span><br><span class="line"></span><br><span class="line">data_X = pandas.read_csv(<span class="string">'F:/tmp/amazon/train1.tgt'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">data_y = pandas.read_csv(<span class="string">'F:/tmp/amazon/train1.lab'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">test_X = pandas.read_csv(<span class="string">'F:/tmp/amazon/test.tgt'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line">test_y = pandas.read_csv(<span class="string">'F:/tmp/amazon/test.lab'</span>, sep = <span class="string">'\t'</span>, header=<span class="literal">None</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 改变数据形式</span></span><br><span class="line">tmp = np.array(data_X)</span><br><span class="line">tmp = tmp.reshape(<span class="number">1</span>, len(tmp)).tolist()[<span class="number">0</span>]</span><br><span class="line">data_X = [item.split() <span class="keyword">for</span> item <span class="keyword">in</span> tmp]</span><br><span class="line"></span><br><span class="line">tmp = np.array(test_X)</span><br><span class="line">tmp = tmp.reshape(<span class="number">1</span>, len(tmp)).tolist()[<span class="number">0</span>]</span><br><span class="line">test_X = [item.split() <span class="keyword">for</span> item <span class="keyword">in</span> tmp]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第一次用word2vec，测试了一下效果，感觉还好</span></span><br><span class="line"><span class="string">""" </span></span><br><span class="line"><span class="string">w2v = Word2Vec(data_X, sg=1, iter=8)</span></span><br><span class="line"><span class="string">for e in w2v.most_similar(positive=['good'], topn=10):</span></span><br><span class="line"><span class="string">    print(e[0], e[1])</span></span><br><span class="line"><span class="string">bad 0.9058005809783936</span></span><br><span class="line"><span class="string">pretty 0.8905544281005859</span></span><br><span class="line"><span class="string">really 0.8673542737960815</span></span><br><span class="line"><span class="string">great 0.8508365154266357</span></span><br><span class="line"><span class="string">but 0.8443725109100342</span></span><br><span class="line"><span class="string">very 0.8429215550422668</span></span><br><span class="line"><span class="string">decent 0.8421783447265625</span></span><br><span class="line"><span class="string">weak 0.8297692537307739</span></span><br><span class="line"><span class="string">sweet 0.8187519311904907</span></span><br><span class="line"><span class="string">convenient 0.8135256767272949 """</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">data_y = data_y.where(data_y[<span class="number">0</span>] &gt;= <span class="number">3</span>, <span class="number">0</span>).where(data_y[<span class="number">0</span>] &lt; <span class="number">3</span>, <span class="number">1</span>)</span><br><span class="line">test_y = test_y.where(test_y[<span class="number">0</span>] &gt;= <span class="number">3</span>, <span class="number">0</span>).where(test_y[<span class="number">0</span>] &lt; <span class="number">3</span>, <span class="number">1</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># word2vec模型，遍历所有文档训练，得到每个词的向量</span></span><br><span class="line">w2v = Word2Vec(data_X, min_count=<span class="number">1</span>, size=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 求平均得到每一句话的向量，应该还会有更好的方法</span></span><br><span class="line">X_train = []</span><br><span class="line"><span class="keyword">for</span> sentence <span class="keyword">in</span> data_X:</span><br><span class="line">    vec = np.zeros(<span class="number">50</span>).reshape((<span class="number">1</span>, <span class="number">50</span>))[<span class="number">0</span>]</span><br><span class="line"><span class="comment"># 一开始没加[0]，训练时报错ValueError: Found array with dim 3. Estimator expected &lt;= 2.</span></span><br><span class="line"><span class="comment"># 以为是test_y的问题，找了很久才发现是X。</span></span><br><span class="line">    <span class="keyword">for</span> word <span class="keyword">in</span> sentence:</span><br><span class="line">        vec += w2v[word].reshape((<span class="number">1</span>, <span class="number">50</span>))[<span class="number">0</span>]</span><br><span class="line">    vec /= len(sentence)</span><br><span class="line">    X_train.append(vec)</span><br><span class="line"></span><br><span class="line">X_test = []</span><br><span class="line"><span class="keyword">for</span> sentence <span class="keyword">in</span> test_X:</span><br><span class="line">    vec = np.zeros(<span class="number">50</span>).reshape((<span class="number">1</span>, <span class="number">50</span>))[<span class="number">0</span>]</span><br><span class="line">    <span class="keyword">for</span> word <span class="keyword">in</span> sentence:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            vec += w2v[word].reshape((<span class="number">1</span>, <span class="number">50</span>))[<span class="number">0</span>]</span><br><span class="line"><span class="comment"># 第一次尝试try，因为测试集里可能会出现新单词</span></span><br><span class="line">        <span class="keyword">except</span> KeyError:</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">    vec /= len(sentence)</span><br><span class="line">    X_test.append(vec)</span><br><span class="line"></span><br><span class="line"><span class="comment"># svm模型；0 </span></span><br><span class="line">clf = svm.SVC()</span><br><span class="line"><span class="comment"># abacf = AdaBoostClassifier() # ababoost，运行这个的时候卡了。。于是削减了一下训练数据</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># abacf.fit(X_tfidf, data_y)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">clf_res = clf.fit(X_train, data_y)</span><br><span class="line">print(clf_res.score(X_test, test_y))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 最后结果都是0.848左右</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
 <h5 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h5><p>曾经纠结先进行分割为训练集测试集再对训练集的词汇建立tf-idf模型，还是对所有的评论建立。后来觉得训练出来模型需要面对的是一个陌生的环境，所以即使有些词汇不出现也是正常的。于是就按上面的来了。</p>
 <p>此外，这次没有去除stopword，只是前几次在尝试分词的时候使用了，下次项目可以尝试一下</p>
 <p>此次的实验都是以尝试为主，前面耽误了太多时间，也走了很多弯路，也没有去追求效果。</p>
@@ -237,13 +242,12 @@
     <content><![CDATA[<p>choose everything by yourself, for yourself, and which makes you be yourself</p>
 <p>choose friendship, choose love, choose job, choose goal, choose furture and choose youself</p>
 <a id="more"></a>
-
 <p>看完了时光慢递，这是一部本应该去年夏日就看完的片子。它仿佛来自去年的我好奇的问候一样，姗姗来迟。也好像未来的我的悄悄的叮嘱和小心翼翼的祝福。</p>
 <p>看到里面那熟悉的园子，熟悉的活动，熟悉的一草一木。</p>
 <p>连空气都是自由的。当然，阳光下的灰尘也是。</p>
 <p>自由，诞生了思想，诞生了伟大，同时也滋生了堕落与迷醉。</p>
 <p>看着每一个熟悉或者不熟悉的人，或快或慢的或东或西，而我自己却沉醉在自己的世界，一个充满琐事，充满分心，充满焦虑，充满小气的世界，仿佛突然不小心，或者偶尔，伸出了头，探到窗外瞥了一眼，看到了清新，看到了充满的希望。</p>
-<p>选择，           ———</p>
+<p>选择，           ————-</p>
 <p><em>写到这里，我用半个多小时去看了一篇学长拍这个电影的始末——<a href="https://zhuanlan.zhihu.com/p/85811675" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/85811675</a></em></p>
 <p><em>于是也看到了种种的无奈，看到了追逐梦想背后的烦恼与无力。</em></p>
 <p>与之而来的是我忘记了看之前的那半句话想说什么。</p>
@@ -252,18 +256,9 @@
 <p>本来还想继续分析自己的性格，自己的目标，自己的决定，自己的优缺点……</p>
 <p>可是突然发现已经打鸡血似的好多次了，多说无益，看自己的行动。</p>
 <p>最后也放几张图片吧，作为曾经，作为许诺，作为希冀。</p>
-<img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011212795.png" alt="image-20200212011212795" style="zoom:25%;" />
-
-
-
-<img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011258563.png" alt="image-20200212011258563" style="zoom:60%;" />
-
-
-
-<img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011334641.png" alt="image-20200212011334641" style="zoom:50%;" />
-
-
-
+<p><img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011212795.png" alt="image-20200212011212795" style="zoom:25%;" /></p>
+<p><img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011258563.png" alt="image-20200212011258563" style="zoom:60%;" /></p>
+<p><img src="C:\Users\lenovo\AppData\Roaming\Typora\typora-user-images\image-20200212011334641.png" alt="image-20200212011334641" style="zoom:50%;" /></p>
 <p>在这里：</p>
 <blockquote>
 <p>敢去做改变自己人生轨迹的选择<br>并不是因为勇敢<br>而是因为去做自己不喜欢的事情<br>需要更大的勇气</p>
@@ -289,7 +284,6 @@
     <url>/2020/01/31/habit-and-nature/</url>
     <content><![CDATA[<p>country :  nature &amp; habit</p>
 <a id="more"></a>
-
 <h5 id="乡土中国"><a href="#乡土中国" class="headerlink" title="乡土中国"></a>乡土中国</h5><p> 《乡土中国》，如题，写的是乡土社会，中国的乡土社会。因此这个对象就有两个特点，一个是乡土的特点，我归纳为自然与习惯，另一个是中国人所带来的属性：对土地的独特感觉与受到古文化仁义礼智信的影响。</p>
 <p>这两种特点相互影响相互融合，构成了实实在在有血有肉的乡土中国。</p>
 <p>从这两种特点来解构书中所提及的各种现象和定义，也就不难理解了。比如乡村人对土地对泥土的尊重与依赖，认为那是根，那是魂。中国人总是自觉而不自知的去开垦，去耕种，总是把生命与精神跟土地捆绑在一起。<em>孩子在土里洗澡，爸爸在土里流汗，爷爷在土里埋葬</em>。一生都浸在土地里。</p>
@@ -335,7 +329,6 @@
     <url>/2020/01/26/a-dogs-purpose/</url>
     <content><![CDATA[<p>If everything is true &amp; hope everything is true</p>
 <a id="more"></a>
-
 <h5 id="自问使命"><a href="#自问使命" class="headerlink" title="自问使命"></a>自问使命</h5><p>我觉得人也应该如此，问一下自己存在的意义，自己存在的使命。</p>
 <p>最后Bailey找到了自己的答案：</p>
 <blockquote>
@@ -369,7 +362,6 @@
     <url>/2020/01/25/farewell-my-2019/</url>
     <content><![CDATA[<p>farewell &amp; welcome</p>
 <a id="more"></a>
-
 <h5 id="What-has-time-told"><a href="#What-has-time-told" class="headerlink" title="What has time told?"></a>What has time told?</h5><p>刚刚读完了2019除夕时写下的对自己想说的话，感慨颇多。</p>
 <p>有很多感受：尊敬过去那个自信说出未来的自己，并继续认为那正是我的方向。也为现在并没有拼尽全力去朝着那个方向踽踽前行而愧疚，并真真切切的感受到了自己灵魂的干涩。</p>
 <p>首先，过去的这个2019，是在现实中失去信仰，生活失去根基的一年。上半年开始显露端倪，暑假时痛定思痛稍微改善，然后下学期初踌躇满志，最后彻底堕落与沦陷。以至于接近万劫不复。</p>
@@ -399,7 +391,7 @@
 <p>然而我现在不再那样了。我开始接受，并将坦然面对，面对那些礼节，那些责任，那些不得不。并将坚持一些自己的东西，宁愿被讽，被骂，被难以理解。</p>
 <p>看到一篇回答，”人是如何变得平庸的“，感慨颇多，其中有很多现象我深以为然。里面也有一句话：</p>
 <blockquote>
-<p>人废掉的本质很简单——长期沉迷于消耗性事物，而很少做创造性的事情。</p>
+<p>人废掉的本质很简单———长期沉迷于消耗性事物，而很少做创造性的事情。</p>
 </blockquote>
 <p>我应该去做创造性的事情。</p>
 <p>不应让自己满足。去多逼迫一下自己吧。</p>
@@ -435,7 +427,6 @@
     <url>/2020/01/19/84-Charing-Cross-Road/</url>
     <content><![CDATA[<p>my first book review</p>
 <a id="more"></a>
-
 <h4 id="查令十字街84号："><a href="#查令十字街84号：" class="headerlink" title="查令十字街84号："></a>查令十字街84号：</h4><p>​    当弗兰克多年后仍坐在店门左手边的那张书桌上，笔尖跳跃着书写的时候，会不会想起他第一次打开那浅黄色信笺的那个清晨？</p>
 <blockquote>
 <p>诸位先生：</p>
@@ -474,14 +465,10 @@
     <url>/2020/01/09/first-try/</url>
     <content><![CDATA[<p>This is a drop of sea</p>
 <a id="more"></a>
-
-
-
 <h5 id="tag"><a href="#tag" class="headerlink" title="tag"></a>tag</h5><p>“- try”</p>
 <h5 id="categories"><a href="#categories" class="headerlink" title="categories"></a>categories</h5><p>“- hello? world!”</p>
 <h5 id="url"><a href="#url" class="headerlink" title="url"></a>url</h5><p>““??</p>
 <img src="/2020/01/09/first-try/082.jpg" class="" title="This is an example image">
-
 <p><img src="082.jpg" alt=""></p>
 <p>why there is no pic?</p>
 ]]></content>
@@ -497,19 +484,14 @@
     <url>/2020/01/09/hello-world/</url>
     <content><![CDATA[<p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. </p>
 <a id="more"></a>
-
 <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
 <h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
-
 <p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
 <h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
-
 <p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
 <h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
-
 <p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
 <h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
-
 <p>More info: <a href="https://hexo.io/docs/one-command-deployment.html" target="_blank" rel="noopener">Deployment</a></p>
 ]]></content>
   </entry>
